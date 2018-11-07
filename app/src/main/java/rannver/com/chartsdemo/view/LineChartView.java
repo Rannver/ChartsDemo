@@ -411,13 +411,13 @@ public class LineChartView extends View {
         Log.d(TAG, "moveEventProcess: xLength = "+xLength);
 
         //滑动的距离
-        float distance = selectXPoint - event.getX();
-        Log.d(TAG, "moveEventProcess: dis = " + distance);
+        float dis = selectXPoint - event.getX();
+        Log.d(TAG, "moveEventProcess: dis = " + dis);
         selectXPoint = event.getX();
-        if (this.distance + distance > width){
+        if (this.distance + dis > width){
             this.distance = width;
         }else {
-            this.distance +=distance;
+            this.distance +=dis;
         }
         invalidate();
 
