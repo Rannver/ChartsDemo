@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -45,12 +46,15 @@ public class LineChartView extends View {
     private float xyTextSize;
     private int xyTextColor;
     private float xScaleLength;
+    private float threshold;
+    private boolean isThresholdLineShow;
 
     //画笔
     private Paint xyPaint; //xy轴画笔
     private Paint xyTextPaint; //xy轴文字画笔
     private Paint linePaint; //折线画笔
     private Paint fillPaint; //填充画笔
+    private Paint thresholdPaint;//阈值线画笔
 
 
     //数据
@@ -68,6 +72,7 @@ public class LineChartView extends View {
     private boolean isDrawSelectPoint = false;// 是否绘制触摸点
     private boolean isMoveTouch = false;//点击事件是否涉及MOVE事件
     private float xLength = 0;//X轴长度
+    private float cooDensity;//Y轴坐标密度
 
 
     private Context context;
@@ -95,8 +100,8 @@ public class LineChartView extends View {
         xyTextPaint = new Paint();
         linePaint = new Paint();
         fillPaint = new Paint();
+        thresholdPaint = new Paint();
 
-        Log.d(TAG, "initPaint: ");
         //xy轴画笔
         xyPaint.setAntiAlias(true);//抗锯齿
         xyPaint.setStrokeWidth(xyLineWidth);//xy轴的粗细
@@ -117,9 +122,15 @@ public class LineChartView extends View {
         linePaint.setColor(linecolor);
         linePaint.setStyle(Paint.Style.STROKE);
 
+
         //填充画笔
         fillPaint.setAntiAlias(true);
         fillPaint.setColor(fillcolor);
+
+        //阈值线画笔
+        thresholdPaint.setAntiAlias(true);
+        thresholdPaint.setPathEffect(new DashPathEffect(new float[]{20f,10f}, 15));
+        thresholdPaint.setStyle(Paint.Style.STROKE);
 
     }
 
@@ -140,6 +151,8 @@ public class LineChartView extends View {
         xyTextSize = array.getDimension(R.styleable.LineChartView_xytextsize,20);
         xyTextColor = array.getColor(R.styleable.LineChartView_xytextcolor,Color.BLACK);
         xScaleLength = array.getDimension(R.styleable.LineChartView_xyscalelength,50);
+        threshold = array.getFloat(R.styleable.LineChartView_threshold,0);
+        isThresholdLineShow = array.getBoolean(R.styleable.LineChartView_thresholdlineshow,false);
 
         array.recycle();
 
@@ -163,20 +176,6 @@ public class LineChartView extends View {
         super.onLayout(changed, left, top, right, bottom);
     }
 
-    /**
-     * 添加坐标点的位置
-     */
-    private void setXYPoint() {
-        float yEnd = yStartPoint-xTextPadding; //y轴终点（以屏幕坐标轴为参考系）
-        for (int i = 0;i<lineDataList.size();i++){
-            float xPoint = dp2px((int) xScaleLength) * i + xStartPoint + yTextPadding;
-            float cooDensity =  (yEnd - dp2px(24)) / getMaxYNumber();
-            float yPoint = yEnd - cooDensity * lineDataList.get(i).getY();
-            lineDataList.get(i).setxPoint(xPoint);
-            lineDataList.get(i).setyPoint(yPoint);
-        }
-    }
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -185,10 +184,58 @@ public class LineChartView extends View {
         drawFillRegion(canvas);
         //绘制XY轴
         drawXY(canvas);
+        //绘制阈值线
+        drawThresholdLine(canvas);
         //绘制点线
         drawPointAndLine(canvas);
         //绘制选择的点
         drawSelectPoint(canvas);
+    }
+
+    /**
+     * 添加坐标点的位置，是否超出阈值的判断
+     */
+    private void setXYPoint() {
+        float yEnd = yStartPoint-xTextPadding; //y轴终点（以屏幕坐标轴为参考系）
+        for (int i = 0;i<lineDataList.size();i++){
+
+            //设置坐标
+            cooDensity =  (yEnd - dp2px(24)) / getMaxYNumber(); //Y轴坐标密度
+            float xPoint = dp2px((int) xScaleLength) * i + xStartPoint + yTextPadding;
+            float yPoint = yEnd - cooDensity * lineDataList.get(i).getY();
+            lineDataList.get(i).setxPoint(xPoint);
+            lineDataList.get(i).setyPoint(yPoint);
+
+            //设置点的颜色
+            if (threshold<=0){
+                break;
+            }
+            if (lineDataList.get(i).getY()<=threshold){
+                lineDataList.get(i).setPointColor(pointcolor);
+            }else {
+                lineDataList.get(i).setPointColor(Color.RED);
+            }
+
+        }
+    }
+
+    /**
+     * 绘制阈值线
+     */
+    private void drawThresholdLine(Canvas canvas) {
+
+        if (!isThresholdLineShow || threshold <= 0){
+            return ;
+        }
+
+        float thresholdLineYIndex = yStartPoint - xTextPadding - threshold * cooDensity;
+        Path path = new Path();
+        path.moveTo(xStartPoint + yTextPadding,thresholdLineYIndex);
+        path.lineTo(xLength - distance,thresholdLineYIndex);
+        thresholdPaint.setColor(Color.GRAY);
+        thresholdPaint.setAlpha(100);
+        canvas.drawPath(path,thresholdPaint);
+
     }
 
     /**
@@ -228,18 +275,18 @@ public class LineChartView extends View {
 
         float[] floats = new float[]{xA, yA,  xD, yD,xB, yB, xE, yE, xC, yC,xA, yA};
 
-        linePaint.setStyle(Paint.Style.FILL);
-        linePaint.setColor(pointcolor);
         Path starPath = new Path();
         starPath.moveTo(xA,yA);
+
+        //画星星
+        linePaint.setStyle(Paint.Style.FILL);
+        linePaint.setColor(lineDataList.get(selectIndex).getPointColor());
         for (int i = 0;i<floats.length;i++){
             starPath.lineTo(floats[i],floats[i+1]);
             i++;
         }
-
         canvas.drawPath(starPath,linePaint);
         isDrawSelectPoint = false;
-
 
     }
 
@@ -301,7 +348,7 @@ public class LineChartView extends View {
         float radiusMin = dp2px(2);
         for (LineData lineData : lineDataList){
             linePaint.setStyle(Paint.Style.FILL);
-            linePaint.setColor(pointcolor);
+            linePaint.setColor(lineData.getPointColor());
             canvas.drawCircle(lineData.getxPoint()-distance,lineData.getyPoint(),radiusMax,linePaint);
 
             if (backgroundColor == Color.TRANSPARENT){
@@ -329,7 +376,7 @@ public class LineChartView extends View {
         canvas.drawLine(xStartPoint+yTextPadding,0,xStartPoint+yTextPadding,yEnd,xyPaint);
         //绘制x轴
         canvas.drawLine(xStartPoint+yTextPadding,yStartPoint-xTextPadding,xEnd-distance,yStartPoint-xTextPadding,xyPaint);
-                //绘制X轴箭头
+        //绘制X轴箭头
         xyPaint.setStyle(Paint.Style.STROKE);
         Path xPath = new Path();
         xPath.moveTo(xEnd-dp2px(12)-distance,yEnd-dp2px(5));
@@ -410,16 +457,19 @@ public class LineChartView extends View {
         Log.d(TAG, "moveEventProcess: width = "+width);
         Log.d(TAG, "moveEventProcess: xLength = "+xLength);
 
-        //滑动的距离
-        float dis = selectXPoint - event.getX();
-        Log.d(TAG, "moveEventProcess: dis = " + dis);
-        selectXPoint = event.getX();
-        if (this.distance + dis > width){
-            this.distance = width;
-        }else {
-            this.distance +=dis;
+        if (xLength>width){
+            //滑动的距离
+            float dis = selectXPoint - event.getX();
+            Log.d(TAG, "moveEventProcess: dis = " + dis);
+            selectXPoint = event.getX();
+            if (Math.abs(this.distance + dis) > width){
+                this.distance = width;
+            }else {
+                this.distance +=dis;
+            }
+            invalidate();
         }
-        invalidate();
+
 
     }
 
@@ -534,6 +584,59 @@ public class LineChartView extends View {
     private int dp2px(int dp) {
         return (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
                 context.getResources().getDisplayMetrics()) + 0.5);
+    }
+
+    public void setXyLineColor(int xyLineColor) {
+        this.xyLineColor = xyLineColor;
+    }
+
+    public void setXyLineWidth(float xyLineWidth) {
+        this.xyLineWidth = xyLineWidth;
+    }
+
+    @Override
+    public void setBackgroundColor(int backgroundColor) {
+        this.backgroundColor = backgroundColor;
+    }
+
+    public void setLinecolor(int linecolor) {
+        this.linecolor = linecolor;
+    }
+
+    public void setScrollable(boolean scrollable) {
+        this.scrollable = scrollable;
+    }
+
+    public void setPointcolor(int pointcolor) {
+        this.pointcolor = pointcolor;
+    }
+
+    public void setFillcolor(int fillcolor) {
+        this.fillcolor = fillcolor;
+    }
+
+    public void setGradient(boolean gradient) {
+        this.gradient = gradient;
+    }
+
+    public void setXyTextSize(float xyTextSize) {
+        this.xyTextSize = xyTextSize;
+    }
+
+    public void setXyTextColor(int xyTextColor) {
+        this.xyTextColor = xyTextColor;
+    }
+
+    public void setxScaleLength(float xScaleLength) {
+        this.xScaleLength = xScaleLength;
+    }
+
+    public void setThreshold(float threshold) {
+        this.threshold = threshold;
+    }
+
+    public void setThresholdLineShow(boolean thresholdLineShow) {
+        isThresholdLineShow = thresholdLineShow;
     }
 
     public List<LineData> getLineDataList() {

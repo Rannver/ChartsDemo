@@ -26,6 +26,10 @@
         <attr name="xytextcolor" format="color"/>
         <!--刻度长度-->
         <attr name="xyscalelength" format="dimension"/>
+        <!--阈值设置-->
+        <attr name="threshold" format="float"/>
+        <!--是否显示阈值线-->
+        <attr name="thresholdlineshow" format="boolean"/>
         
     </declare-styleable>
 

@@ -13,6 +13,9 @@ public class LineData {
     private float yPoint;//坐标点y
 
 
+    private int pointColor;//设置点的颜色
+
+
     public String getX() {
         return x;
     }
@@ -43,5 +46,13 @@ public class LineData {
 
     public void setyPoint(float yPoint) {
         this.yPoint = yPoint;
+    }
+
+    public int getPointColor() {
+        return pointColor;
+    }
+
+    public void setPointColor(int pointColor) {
+        this.pointColor = pointColor;
     }
 }
