@@ -71,8 +71,9 @@ public class LineChartView extends View {
     private int selectIndex = -1;//点击事件选择的点是第几个点
     private boolean isDrawSelectPoint = false;// 是否绘制触摸点
     private boolean isMoveTouch = false;//点击事件是否涉及MOVE事件
-    private float xLength = 0;//X轴长度
+    private float xLength = 0;//X轴长度（会变化的）
     private float cooDensity;//Y轴坐标密度
+    private boolean isSlideRight = false;//是否可以右滑
 
 
     private Context context;
@@ -455,21 +456,25 @@ public class LineChartView extends View {
     private void moveEventProcess(MotionEvent event) {
 
         Log.d(TAG, "moveEventProcess: width = "+width);
-        Log.d(TAG, "moveEventProcess: xLength = "+xLength);
+        Log.d(TAG, "moveEventProcess: xLength = "+(xLength - distance));
 
-        if (xLength>width){
-            //滑动的距离
-            float dis = selectXPoint - event.getX();
-            Log.d(TAG, "moveEventProcess: dis = " + dis);
-            selectXPoint = event.getX();
-            if (Math.abs(this.distance + dis) > width){
-                this.distance = width;
-            }else {
-                this.distance +=dis;
+        //滑动的距离
+        float dis = selectXPoint - event.getX();
+        selectXPoint = event.getX();
+        //x轴总长
+        float diffLength = xStartPoint + xTextPadding + xLength - width;
+        if (width < xLength){
+
+            if (0<diffLength-distance-dis && diffLength-distance-dis<diffLength){
+                distance += dis;
+            }else if (dis<0){
+                distance = 0;
+            }else if (dis>0){
+                distance = diffLength;
             }
-            invalidate();
         }
 
+        invalidate();
 
     }
 
@@ -482,6 +487,7 @@ public class LineChartView extends View {
 
         if (isMoveTouch){
             isMoveTouch = false;
+            return;
         }
 
         for (int i = 0;i<lineDataList.size();i++){
