@@ -211,7 +211,7 @@ public class LineChartView extends View {
         linePaint.setStyle(Paint.Style.FILL);
         linePaint.setColor(backgroundColor);
         linePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-        RectF rectF = new RectF(0,0,xStartPoint+yTextPadding,height);
+        RectF rectF = new RectF(0,0,xStartPoint+yTextPadding,yStartPoint);
         canvas.drawRect(rectF,linePaint);
         linePaint.setXfermode(null);
         canvas.restoreToCount(layerId);
