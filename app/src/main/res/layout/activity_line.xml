@@ -11,13 +11,12 @@
         android:layout_height="300dp"
         android:id="@+id/linechart"
         app:fillcolor = "@color/colorPrimary"
-        app:gradient="true"
         app:linecolor="@color/colorAccent"
         app:pointcolor="@color/colorPrimaryDark"
-        app:xylinecolor="@color/colorPrimary"
         app:xytextcolor="@color/colorPrimary"
         app:thresholdlineshow="true"
         app:threshold="70"
+        app:scrollable="true"
         />
 
 </LinearLayout>

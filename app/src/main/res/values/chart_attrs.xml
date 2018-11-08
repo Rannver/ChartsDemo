@@ -18,8 +18,6 @@
         <attr name="pointcolor" format="color"/>
         <!--填充区域颜色-->
         <attr name="fillcolor" format="color"/>
-        <!--填充区域颜色是否渐变-->
-        <attr name="gradient" format="boolean"/>
         <!--坐标轴文字大小-->
         <attr name="xytextsize" format="dimension"/>
         <!--坐标轴文字颜色-->
