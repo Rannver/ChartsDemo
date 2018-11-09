@@ -549,15 +549,15 @@ public class LinesChartView extends View {
                     selectIndex = i;
                     isDrawSelectPoint = true;
                     selectlineData = lineData;
+                    if (onChartClickListener!=null){
+                        onChartClickListener.onClick(selectlineData.getPointDataList().get(selectIndex),selectIndex);
+                    }
+                    invalidate();//更新视图
+                    return;
                 }
             }
         }
 
-        invalidate();//更新视图
-
-        if (onChartClickListener!=null){
-            onChartClickListener.onClick(selectlineData.getPointDataList().get(selectIndex),selectIndex);
-        }
     }
 
     /**
