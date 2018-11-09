@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <declare-styleable name="LineChartView">
+    <declare-styleable name="LinesChartView">
 
 
         <!--x,y轴颜色-->
@@ -28,30 +28,9 @@
         <attr name="threshold" format="float"/>
         <!--是否显示阈值线-->
         <attr name="thresholdlineshow" format="boolean"/>
+        <!--是否显示折线注释-->
+        <attr name="islinehintshow" format="boolean"/>
         
     </declare-styleable>
-
-    <!--<declare-styleable name="LinesChartView">-->
-
-        <!--&lt;!&ndash;x,y轴颜色&ndash;&gt;-->
-        <!--<attr name="xylinecolor" format="color"/>-->
-        <!--&lt;!&ndash;x,y轴粗细&ndash;&gt;-->
-        <!--<attr name="xylinewidth" format="dimension"/>-->
-        <!--&lt;!&ndash;表格背景颜色&ndash;&gt;-->
-        <!--<attr name="backroundcolor" format="color"/>-->
-        <!--&lt;!&ndash;是否允许滑动&ndash;&gt;-->
-        <!--<attr name="scrollable" format="boolean"/>-->
-        <!--&lt;!&ndash;坐标轴文字大小&ndash;&gt;-->
-        <!--<attr name="xytextsize" format="dimension"/>-->
-        <!--&lt;!&ndash;坐标轴文字颜色&ndash;&gt;-->
-        <!--<attr name="xytextcolor" format="color"/>-->
-        <!--&lt;!&ndash;刻度长度&ndash;&gt;-->
-        <!--<attr name="xyscalelength" format="dimension"/>-->
-        <!--&lt;!&ndash;阈值设置&ndash;&gt;-->
-        <!--<attr name="threshold" format="float"/>-->
-        <!--&lt;!&ndash;是否显示阈值线&ndash;&gt;-->
-        <!--<attr name="thresholdlineshow" format="boolean"/>-->
-
-    <!--</declare-styleable>-->
 
 </resources>

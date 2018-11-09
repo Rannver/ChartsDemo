@@ -1,7 +1,6 @@
 package rannver.com.chartsdemo.chartUtil;
 
 import android.graphics.Color;
-import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +20,7 @@ public class LineData {
     private int fillColor = Color.TRANSPARENT;//填充区域的颜色
     private int lineType = LINETYPE_SOLIDLINE;//线的类型
 
+    private String title;
     private List<PointData> pointDataList = new ArrayList<>();//点数据的集合
     private List<String> xAxisList = new ArrayList<>();//x坐标轴数据的集合
 
@@ -72,6 +72,13 @@ public class LineData {
         this.xAxisList = xAxisList;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     @Override
     public boolean equals(Object o) {

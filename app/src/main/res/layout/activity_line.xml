@@ -14,6 +14,7 @@
         app:thresholdlineshow="true"
         app:threshold="70"
         app:scrollable="true"
+        app:islinehintshow="true"
         />
 
 

@@ -36,13 +36,16 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
         Log.d(TAG, "onCreate: "+lineChart);
         Log.d(TAG, "onCreate: "+ChartDataUtil.getLineChartData());
         try {
-            LineData lineData2 = ChartDataUtil.getLineData();
-            lineData2.setFillColor(Color.YELLOW);
-            lineChart.addLinesMap(lineData2);
             LineData lineData1 = ChartDataUtil.getLineData();
-            lineData1.setLineColor(Color.GREEN);
-            lineData1.setFillColor(Color.BLUE);
+            lineData1.setLineType(LineData.LINETYPE_DOTTEDLINE);
+            lineData1.setFillColor(Color.YELLOW);
+            lineData1.setTitle("数据1");
             lineChart.addLinesMap(lineData1);
+            LineData lineData2 = ChartDataUtil.getLineData();
+            lineData2.setLineColor(Color.GREEN);
+            lineData2.setFillColor(Color.BLUE);
+            lineData2.setTitle("数据2");
+            lineChart.addLinesMap(lineData2);
             lineChart.setOnChartClickListener(this);
         } catch (Exception e) {
             e.printStackTrace();

@@ -48,6 +48,7 @@ public class LinesChartView extends View {
     protected float xScaleLength;
     protected float threshold;
     protected boolean isThresholdLineShow;
+    protected boolean isLineHintShow;
 
     //画笔
     private Paint xyPaint; //xy轴画笔
@@ -55,11 +56,11 @@ public class LinesChartView extends View {
     private Paint linePaint; //折线画笔
     private Paint fillPaint; //填充画笔
     private Paint thresholdPaint;//阈值线画笔
+    private Paint hintPaint;//折线注释画笔
 
 
     //数据
     private Context context;
-//    private List<PointData> pointDataList = new ArrayList<>();   //绘制图表的数据
     private float yTextPadding = 0;  //y轴距离
     private float xTextPadding = 0;  //x轴距离
     private int xStartPoint = 0;//x原点位置
@@ -75,11 +76,13 @@ public class LinesChartView extends View {
     private boolean isMoveTouch = false;//点击事件是否涉及MOVE事件
     private float xLength = 0;//X轴长度
     private float cooDensity;//Y轴坐标密度
+    private float hintHeight = 0;//
     protected OnChartClickListener onChartClickListener = null; //坐标点的监听事件
     protected List<String> xAxisList = new ArrayList<>();//x坐标轴数据的集合
-
-
     protected HashMap<LineData,Integer> mLinesMap = new HashMap<>();//存放线的数据的集合
+
+    private final int LINEHINT_RECT_HEIGHT = 20;
+    private final int LINEHINT_RECT_WIDTH = 25;
 
 
     public LinesChartView(Context context) {
@@ -105,6 +108,7 @@ public class LinesChartView extends View {
         linePaint = new Paint();
         fillPaint = new Paint();
         thresholdPaint = new Paint();
+        hintPaint = new Paint();
 
         //xy轴画笔
         xyPaint.setAntiAlias(true);//抗锯齿
@@ -134,6 +138,9 @@ public class LinesChartView extends View {
         thresholdPaint.setPathEffect(new DashPathEffect(new float[]{20f,10f}, 15));
         thresholdPaint.setStyle(Paint.Style.STROKE);
 
+        //折线注释画笔
+        hintPaint.setAntiAlias(true);
+
     }
 
     /**
@@ -141,16 +148,17 @@ public class LinesChartView extends View {
      */
     private void initAttrs(Context context, @Nullable AttributeSet attrs) {
 
-        TypedArray array = context.obtainStyledAttributes(attrs,R.styleable.LineChartView);
-        xyLineColor = array.getColor(R.styleable.LineChartView_xylinecolor,Color.BLACK);
-        xyLineWidth = array.getFloat(R.styleable.LineChartView_xylinewidth,3);
-        backgroundColor = array.getColor(R.styleable.LineChartView_backroundcolor,Color.WHITE);
-        scrollable = array.getBoolean(R.styleable.LineChartView_scrollable,false);
-        xyTextSize = array.getDimension(R.styleable.LineChartView_xytextsize,20);
-        xyTextColor = array.getColor(R.styleable.LineChartView_xytextcolor,Color.BLACK);
-        xScaleLength = array.getDimension(R.styleable.LineChartView_xyscalelength,50);
-        threshold = array.getFloat(R.styleable.LineChartView_threshold,0);
-        isThresholdLineShow = array.getBoolean(R.styleable.LineChartView_thresholdlineshow,false);
+        TypedArray array = context.obtainStyledAttributes(attrs,R.styleable.LinesChartView);
+        xyLineColor = array.getColor(R.styleable.LinesChartView_xylinecolor,Color.BLACK);
+        xyLineWidth = array.getFloat(R.styleable.LinesChartView_xylinewidth,3);
+        backgroundColor = array.getColor(R.styleable.LinesChartView_backroundcolor,Color.WHITE);
+        scrollable = array.getBoolean(R.styleable.LinesChartView_scrollable,false);
+        xyTextSize = array.getDimension(R.styleable.LinesChartView_xytextsize,20);
+        xyTextColor = array.getColor(R.styleable.LinesChartView_xytextcolor,Color.BLACK);
+        xScaleLength = array.getDimension(R.styleable.LinesChartView_xyscalelength,50);
+        threshold = array.getFloat(R.styleable.LinesChartView_threshold,0);
+        isThresholdLineShow = array.getBoolean(R.styleable.LinesChartView_thresholdlineshow,false);
+        isLineHintShow = array.getBoolean(R.styleable.LinesChartView_islinehintshow,false);
 
         array.recycle();
 
@@ -165,7 +173,7 @@ public class LinesChartView extends View {
 
         if (changed){
             //确定xy原点位置
-            getMaxTextPadding();
+            setXYOri();
             setXYPoint();
         }
 
@@ -180,6 +188,8 @@ public class LinesChartView extends View {
 
         //绘制Y轴
         drawY(canvas);
+        //绘制折线注释
+        drawLineHint(canvas);
         //新开图层达到滑动效果
         int layerId = canvas.saveLayer(0, 0, width, height, null, Canvas.ALL_SAVE_FLAG);
         //绘制X轴
@@ -192,8 +202,67 @@ public class LinesChartView extends View {
         drawSelectPoint(canvas);
         //保存图层
         save(canvas,layerId);
+
     }
 
+    /**
+     * 绘制折线注释
+     * @param canvas
+     */
+    private void drawLineHint(Canvas canvas) {
+        if(!isLineHintShow){
+            return;
+        }
+        int startX = xStartPoint;
+        int hintY = height - dp2px(LINEHINT_RECT_HEIGHT/2);
+
+        Iterator it = mLinesMap.entrySet().iterator();
+        while (it.hasNext()){
+            Map.Entry entry = (Map.Entry) it.next();
+            LineData lineData = (LineData) entry.getKey();
+
+            //画填充颜色
+            RectF rectF = new RectF(startX,height - dp2px(LINEHINT_RECT_HEIGHT) + dp2px(5),startX+dp2px(LINEHINT_RECT_WIDTH),height - dp2px(5));
+            hintPaint.setColor(lineData.getFillColor());
+            hintPaint.setStyle(Paint.Style.FILL);
+            canvas.drawRect(rectF,hintPaint);
+
+            //画线
+            Path hintPath = new Path();
+            hintPath.moveTo(startX,hintY);
+            hintPath.lineTo(startX+dp2px(LINEHINT_RECT_WIDTH),hintY);
+            if (lineData.getLineType()==LineData.LINETYPE_DOTTEDLINE){
+                hintPaint.setPathEffect(new DashPathEffect(new float[]{20f,10f}, 0));
+            }else {
+                hintPaint.setPathEffect(new DashPathEffect(new float[]{0f,0f}, 0));
+            }
+            hintPaint.setStyle(Paint.Style.STROKE);
+            hintPaint.setColor(lineData.getLineColor());
+            canvas.drawPath(hintPath,hintPaint);
+
+            //画点
+            float radiusMax = dp2px(3);
+            float radiusMin = dp2px(2);
+            hintPaint.setStyle(Paint.Style.FILL);
+            hintPaint.setColor(lineData.getPointColor());
+            canvas.drawCircle(startX+dp2px(LINEHINT_RECT_WIDTH)/2,hintY,radiusMax,hintPaint);
+            hintPaint.setColor(Color.WHITE);
+            canvas.drawCircle(startX+dp2px(LINEHINT_RECT_WIDTH)/2,hintY,radiusMin,hintPaint);
+
+            //画字
+            hintPaint.setColor(Color.BLACK);
+            hintPaint.setStyle(Paint.Style.STROKE);
+            hintPaint.setTextSize(18);
+            canvas.drawText(lineData.getTitle(),startX+dp2px(LINEHINT_RECT_WIDTH)+dp2px(2),height-dp2px(8),hintPaint);
+
+            startX += dp2px(LINEHINT_RECT_WIDTH)+ getTextBounds(lineData.getTitle(),hintPaint).width() + dp2px(7);
+        }
+    }
+
+    /**
+     * 绘制所有折线
+     * @param canvas
+     */
     private void drawAllLines(Canvas canvas) {
 
         Iterator it = mLinesMap.entrySet().iterator();
@@ -390,6 +459,12 @@ public class LinesChartView extends View {
         }
 
         //画折线
+        if (lineData.getLineType()==LineData.LINETYPE_DOTTEDLINE){
+            linePaint.setPathEffect(new DashPathEffect(new float[]{20f,10f}, 0));
+        }else {
+            linePaint.setPathEffect(new DashPathEffect(new float[]{0f,0f}, 0));
+        }
+
         linePaint.setStyle(Paint.Style.STROKE);
         linePaint.setColor(lineData.getLineColor());
         linePaint.setStrokeJoin(Paint.Join.ROUND);
@@ -398,16 +473,6 @@ public class LinesChartView extends View {
         for (PointData pointData : pointDataList){
             linePath.lineTo(pointData.getxPoint()-distance, pointData.getyPoint());
         }
-        //保留后续再做的平滑曲线部分
-//        for (int i = 0;i<pointDataList.size()-1;i++){
-//            PointData start = pointDataList.get(i);
-//            PointData end = pointDataList.get(i+1);
-//            float x1 = (start.getxPoint() + end.getxPoint())/2;
-//            float y1 = start.getyPoint();
-//            float x2 = (start.getxPoint() + end.getxPoint())/2;
-//            float y2 = end.getyPoint();
-//            linePath.cubicTo(x1,y1,x2,y2,end.getxPoint(),end.getyPoint());
-//        }
         canvas.drawPath(linePath,linePaint);
 
         //画点
@@ -623,7 +688,7 @@ public class LinesChartView extends View {
     /**
      * 获取XY轴原点距离
      */
-    private void getMaxTextPadding() {
+    private void setXYOri() {
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry entry = (Map.Entry) it.next();
@@ -644,9 +709,14 @@ public class LinesChartView extends View {
                 xTextPadding = padding;
             }
         }
+
+        if (isLineHintShow){
+            hintHeight =LINEHINT_RECT_HEIGHT;
+        }
+
         //设置xy轴原点位置
         xStartPoint = (int) ( yTextPadding + xyLineWidth );
-        yStartPoint = height - dp2px((int) (xTextPadding - xyLineWidth));
+        yStartPoint = height - dp2px((int) (xTextPadding + xyLineWidth + hintHeight));
     }
 
     /**
