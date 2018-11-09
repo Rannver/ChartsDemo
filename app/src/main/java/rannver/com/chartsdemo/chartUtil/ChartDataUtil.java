@@ -10,20 +10,33 @@ import java.util.Random;
  */
 public class ChartDataUtil {
 
-    public static List<LineData> getLineChartData(){
-        List<LineData> list = new ArrayList<>();
+    public static List<PointData> getLineChartData(){
+        List<PointData> list = new ArrayList<>();
         for (int i = 0;i<10;i++){
-            LineData data = new LineData();
+            PointData data = new PointData();
             Random random = new Random();
             data.setX((i+1)+"月");
             data.setY(random.nextInt(100)+1);
             list.add(data);
         }
-        LineData data = new LineData();
+        PointData data = new PointData();
         data.setX("");
         data.setyPoint(0);
         list.add(data);
         return list;
+    }
+
+    public static LineData getLineData(){
+        LineData lineData = new LineData();
+        lineData.setPointDataList(getLineChartData());
+
+        List<String> list = new ArrayList<>();
+        for (int i = 0;i<10;i++){
+            list.add((i+1)+"月");
+        }
+
+        lineData.setxAxisList(list);
+        return lineData;
     }
 
 }

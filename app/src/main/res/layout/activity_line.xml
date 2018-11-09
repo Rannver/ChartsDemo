@@ -6,17 +6,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <rannver.com.chartsdemo.view.LineChartView
+    <rannver.com.chartsdemo.view.LinesChart
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:id="@+id/linechart"
-        app:fillcolor = "@color/colorPrimary"
-        app:linecolor="@color/colorAccent"
-        app:pointcolor="@color/colorPrimaryDark"
         app:xytextcolor="@color/colorPrimary"
         app:thresholdlineshow="true"
         app:threshold="70"
         app:scrollable="true"
         />
+
+
+    <!--<Button-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/btu_add"-->
+        <!--android:text="ADD LINE"/>-->
 
 </LinearLayout>

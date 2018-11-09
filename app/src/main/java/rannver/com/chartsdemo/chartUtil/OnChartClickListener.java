@@ -5,6 +5,6 @@ package rannver.com.chartsdemo.chartUtil;
  */
 public interface OnChartClickListener <T> {
 
-    void onClick(T data,int index);
+    void onClick(T data, int index);
 
 }
