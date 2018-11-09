@@ -1,5 +1,6 @@
 package rannver.com.chartsdemo.activity;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +11,7 @@ import android.widget.Toast;
 
 import rannver.com.chartsdemo.R;
 import rannver.com.chartsdemo.chartUtil.ChartDataUtil;
+import rannver.com.chartsdemo.chartUtil.LineData;
 import rannver.com.chartsdemo.chartUtil.PointData;
 import rannver.com.chartsdemo.chartUtil.OnChartClickListener;
 import rannver.com.chartsdemo.view.LinesChart;
@@ -35,7 +37,9 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
         Log.d(TAG, "onCreate: "+ChartDataUtil.getLineChartData());
         try {
             lineChart.addLinesMap(ChartDataUtil.getLineData());
-            lineChart.addLinesMap(ChartDataUtil.getLineData());
+            LineData lineData = ChartDataUtil.getLineData();
+            lineData.setLineColor(Color.GREEN);
+            lineChart.addLinesMap(lineData);
             lineChart.setOnChartClickListener(this);
         } catch (Exception e) {
             e.printStackTrace();

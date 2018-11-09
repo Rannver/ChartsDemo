@@ -529,7 +529,7 @@ public class LinesChartView extends View {
             return;
         }
 
-        int selectR = dp2px(10);
+        int selectR = dp2px(5);
 
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()){
