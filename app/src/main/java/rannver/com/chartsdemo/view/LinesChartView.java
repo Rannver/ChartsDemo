@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.animation.Animation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -231,7 +232,7 @@ public class LinesChartView extends View {
             return;
         }
         int startX = xStartPoint;
-        int hintY = height - dp2px(LINEHINT_RECT_HEIGHT/2);
+        float hintY = height - dp2px(LINEHINT_RECT_HEIGHT/2) +xyLineWidth;
 
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()){
@@ -239,7 +240,7 @@ public class LinesChartView extends View {
             LineData lineData = (LineData) entry.getValue();
 
             //画填充颜色
-            RectF rectF = new RectF(startX,height - dp2px(LINEHINT_RECT_HEIGHT) + dp2px(5),startX+dp2px(LINEHINT_RECT_WIDTH),height - dp2px(5));
+            RectF rectF = new RectF(startX,height - dp2px(LINEHINT_RECT_HEIGHT) + xTextPadding +xyLineWidth,startX+dp2px(LINEHINT_RECT_WIDTH),height - dp2px(5));
             hintPaint.setColor(lineData.getFillColor());
             hintPaint.setStyle(Paint.Style.FILL);
             canvas.drawRect(rectF,hintPaint);
@@ -272,7 +273,7 @@ public class LinesChartView extends View {
             hintPaint.setStyle(Paint.Style.STROKE);
             hintPaint.setTextSize(18);
             hintPaint.setStrokeWidth(0);
-            canvas.drawText(lineData.getTitle(),startX+dp2px(LINEHINT_RECT_WIDTH)+dp2px(2),height-dp2px(8),hintPaint);
+            canvas.drawText(lineData.getTitle(),startX+dp2px(LINEHINT_RECT_WIDTH)+dp2px(2),height-dp2px(6),hintPaint);
 
 
             startX += dp2px(LINEHINT_RECT_WIDTH)+ getTextBounds(lineData.getTitle(),hintPaint).width() + dp2px(7);
@@ -361,7 +362,7 @@ public class LinesChartView extends View {
             for (int i = 0; i< pointDataList.size(); i++){
 
                 //设置坐标
-                cooDensity =  (yEnd - dp2px(24)) / getMaxYNumber(); //Y轴坐标密度
+                cooDensity =  (height- dp2px(LINEHINT_RECT_HEIGHT)-xTextPadding - xyLineWidth - dp2px(24)) / getMaxYNumber(); //Y轴坐标密度
                 float xPoint = dp2px((int) xScaleLength) * i + xStartPoint + yTextPadding;
                 float yPoint = yEnd - cooDensity * pointDataList.get(i).getY();
                 pointDataList.get(i).setxPoint(xPoint);
@@ -785,7 +786,6 @@ public class LinesChartView extends View {
             Map.Entry entry = (Map.Entry) it.next();
             LineData lineData = (LineData) entry.getValue();
             List<PointData> pointDataList = lineData.getPointDataList();
-            max = pointDataList.get(0).getY();
             for (PointData data: pointDataList){
                 if (data.getY()>max){
                     max = data.getY();
