@@ -58,6 +58,8 @@ public class LinesChartView extends View {
     private Paint thresholdPaint;//阈值线画笔
     private Paint hintPaint;//折线注释画笔
 
+    //路径
+    Path linePath;
 
     //数据
     private Context context;
@@ -76,7 +78,7 @@ public class LinesChartView extends View {
     private boolean isMoveTouch = false;//点击事件是否涉及MOVE事件
     private float xLength = 0;//X轴长度
     private float cooDensity;//Y轴坐标密度
-    private float hintHeight = 0;//
+    private float hintHeight = 0;//提示文本高度
     protected OnChartClickListener onChartClickListener = null; //坐标点的监听事件
     protected List<String> xAxisList = new ArrayList<>();//x坐标轴数据的集合
     protected HashMap<LineData,Integer> mLinesMap = new HashMap<>();//存放线的数据的集合
@@ -98,9 +100,19 @@ public class LinesChartView extends View {
         this.context = context;
         initAttrs(context,attrs);
         initPaint();
+        initPath();
     }
 
-    //初始化画笔
+    /**
+     * 初始化路径
+     */
+    private void initPath() {
+        linePath = new Path();
+    }
+
+    /**
+     * 初始化画笔
+     */
     private void initPaint() {
 
         xyPaint = new Paint();
@@ -186,6 +198,8 @@ public class LinesChartView extends View {
         super.onDraw(canvas);
         canvas.drawColor(backgroundColor);//背景颜色
 
+        setXYPoint();
+
         //绘制Y轴
         drawY(canvas);
         //绘制折线注释
@@ -202,7 +216,6 @@ public class LinesChartView extends View {
         drawSelectPoint(canvas);
         //保存图层
         save(canvas,layerId);
-
     }
 
     /**
@@ -238,6 +251,7 @@ public class LinesChartView extends View {
             }
             hintPaint.setStyle(Paint.Style.STROKE);
             hintPaint.setColor(lineData.getLineColor());
+            hintPaint.setStrokeWidth(xyLineWidth);
             canvas.drawPath(hintPath,hintPaint);
 
             //画点
@@ -253,7 +267,9 @@ public class LinesChartView extends View {
             hintPaint.setColor(Color.BLACK);
             hintPaint.setStyle(Paint.Style.STROKE);
             hintPaint.setTextSize(18);
+            hintPaint.setStrokeWidth(0);
             canvas.drawText(lineData.getTitle(),startX+dp2px(LINEHINT_RECT_WIDTH)+dp2px(2),height-dp2px(8),hintPaint);
+
 
             startX += dp2px(LINEHINT_RECT_WIDTH)+ getTextBounds(lineData.getTitle(),hintPaint).width() + dp2px(7);
         }
@@ -374,6 +390,7 @@ public class LinesChartView extends View {
         path.lineTo(xLength - distance,thresholdLineYIndex);
         thresholdPaint.setColor(Color.GRAY);
         thresholdPaint.setAlpha(100);
+        thresholdPaint.setStrokeWidth(xyLineWidth/2);
         canvas.drawPath(path,thresholdPaint);
 
     }
@@ -468,7 +485,7 @@ public class LinesChartView extends View {
         linePaint.setStyle(Paint.Style.STROKE);
         linePaint.setColor(lineData.getLineColor());
         linePaint.setStrokeJoin(Paint.Join.ROUND);
-        Path linePath = new Path();
+        linePath = new Path();
         linePath.moveTo(pointDataList.get(0).getxPoint()-distance, pointDataList.get(0).getyPoint());
         for (PointData pointData : pointDataList){
             linePath.lineTo(pointData.getxPoint()-distance, pointData.getyPoint());
@@ -499,6 +516,7 @@ public class LinesChartView extends View {
      */
     private void drawX(Canvas canvas) {
 
+        Log.d(TAG, "drawX: "+xAxisList.size());
         xLength = dp2px((int) (xAxisList.size()*xScaleLength+12));//x轴的长度12dp预留x轴画箭头
         float xEnd = xStartPoint+yTextPadding+xLength; //x轴的终点(以屏幕坐标轴为参考系)
         float yEnd = yStartPoint-xTextPadding; //y轴终点（以屏幕坐标轴为参考系）

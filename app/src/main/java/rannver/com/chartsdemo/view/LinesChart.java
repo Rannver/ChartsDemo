@@ -90,12 +90,13 @@ public class LinesChart extends LinesChartView  {
     /**
      * 添加折线数据
      */
-    private static int linesTarget = 0;
+    private  int linesTarget = 0;
     public void addLinesMap(LineData lineData) throws Exception {
 
         if (mLinesMap.containsKey(lineData)){
             return;
         }
+        Log.d("LinesChart", "addLinesMap: ");
         if (xAxisList.size()>0 &&!xAxisList.equals(lineData.getxAxisList())){
             throw new Exception("line and view have different XAxis");
         }
@@ -103,6 +104,7 @@ public class LinesChart extends LinesChartView  {
             xAxisList = lineData.getxAxisList();
         }
         mLinesMap.put(lineData,linesTarget++);
+        postInvalidate();
     }
 
     public void setXyLineColor(int xyLineColor) {

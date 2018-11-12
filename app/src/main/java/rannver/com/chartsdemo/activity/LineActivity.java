@@ -20,7 +20,7 @@ import rannver.com.chartsdemo.view.LinesChartView;
 /**
  * Created by  hqy on 2018/11/5
  */
-public class LineActivity extends AppCompatActivity implements OnChartClickListener {
+public class LineActivity extends AppCompatActivity implements OnChartClickListener,View.OnClickListener {
 
     private final String TAG = this.getClass().toString();
     private LinesChart lineChart;
@@ -31,11 +31,13 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_line);
         lineChart = findViewById(R.id.linechart);
-//        btuAdd = findViewById(R.id.btu_add);
-//        btuAdd.setOnClickListener(this);
+        lineChart.setScrollable(true);
+        btuAdd = findViewById(R.id.btu_add);
+        btuAdd.setOnClickListener(this);
         Log.d(TAG, "onCreate: "+lineChart);
         Log.d(TAG, "onCreate: "+ChartDataUtil.getLineChartData());
         try {
+            Log.d(TAG, "onCreate: ");
             LineData lineData1 = ChartDataUtil.getLineData();
             lineData1.setLineType(LineData.LINETYPE_DOTTEDLINE);
             lineData1.setFillColor(Color.YELLOW);
@@ -57,13 +59,18 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
         PointData pointData = (PointData) data;
         Toast.makeText(this,"["+ pointData.getX()+","+ pointData.getY()+"],"+(index+1),Toast.LENGTH_SHORT).show();
     }
-//
-//    @Override
-//    public void onClick(View v) {
-//        try {
-//            lineChart.addLinesMap(ChartDataUtil.getLineData());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+
+    @Override
+    public void onClick(View v) {
+
+        try {
+            LineData lineData = ChartDataUtil.getLineData();
+            lineData.setLineColor(Color.GREEN);
+            lineData.setFillColor(Color.BLUE);
+            lineData.setTitle("数据3");
+            lineChart.addLinesMap(lineData);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
