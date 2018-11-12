@@ -14,6 +14,9 @@ public class PointData {
     private float xPoint;//坐标点x
     private float yPoint;//坐标点y
 
+    //动画用
+    private float yPointPre;//前一个y坐标点
+    private float yCurrentPoint;//当前坐标点
 
     private int pointColor;//设置点的颜色
 
@@ -58,6 +61,21 @@ public class PointData {
         this.pointColor = pointColor;
     }
 
+    public float getyPointPre() {
+        return yPointPre;
+    }
+
+    public void setyPointPre(float yPointPre) {
+        this.yPointPre = yPointPre;
+    }
+
+    public float getyCurrentPoint() {
+        return yCurrentPoint;
+    }
+
+    public void setyCurrentPoint(float yCurrentPoint) {
+        this.yCurrentPoint = yCurrentPoint;
+    }
 
     @Override
     public boolean equals(Object o) {

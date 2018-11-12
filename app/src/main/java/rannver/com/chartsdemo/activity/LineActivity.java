@@ -26,6 +26,7 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
     private LinesChart lineChart;
     private Button btuAdd;
     private Button btuRemove;
+    private Button btuChange;
     private int removeTarget = -1;
 
     @Override
@@ -36,6 +37,8 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
         lineChart.setScrollable(true);
         btuAdd = findViewById(R.id.btu_add);
         btuRemove = findViewById(R.id.btu_remove);
+        btuChange = findViewById(R.id.btu_change);
+        btuChange.setOnClickListener(this);
         btuRemove.setOnClickListener(this);
         btuAdd.setOnClickListener(this);
         Log.d(TAG, "onCreate: "+lineChart);
@@ -74,6 +77,20 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
             case R.id.btu_remove:
                 removeLine();
                 break;
+            case R.id.btu_change:
+                changeLine();
+                break;
+        }
+    }
+
+    /**
+     * 改变折线
+     */
+    private void changeLine() {
+        try {
+            lineChart.changeLine(removeTarget,ChartDataUtil.getLineData());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

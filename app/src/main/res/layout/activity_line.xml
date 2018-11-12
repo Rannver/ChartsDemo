@@ -31,4 +31,10 @@
         android:text="REMOVE LINE"
         android:id="@+id/btu_remove"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btu_change"
+        android:text="CHANGE LINE"/>
+
 </LinearLayout>

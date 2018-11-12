@@ -18,6 +18,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,10 @@ import rannver.com.chartsdemo.chartUtil.PointData;
 public class LinesChartView extends View {
 
     private final String TAG = LinesChartView.class.toString();
+    private final int LINEHINT_RECT_HEIGHT = 20;
+    private final int LINEHINT_RECT_WIDTH = 25;
+    private final int FLAG_EVENT_TOUCH = 1;
+    private final int FLAG_EVENT_ANIMATION = 2;
 
     //属性集
     protected int xyLineColor;
@@ -63,28 +68,26 @@ public class LinesChartView extends View {
 
     //数据
     private Context context;
-    private float yTextPadding = 0;  //y轴距离
-    private float xTextPadding = 0;  //x轴距离
+    protected float yTextPadding = 0;  //y轴距离
+    protected float xTextPadding = 0;  //x轴距离
     private int xStartPoint = 0;//x原点位置
     private int yStartPoint = 0;//y原点位置
     private float distance = 0;//滑动的距离
-    private int width;//Layout宽
-    private int height;//Layout高
+    protected int width;//Layout宽
+    protected int height;//Layout高
     private float selectXPoint = -1;//点击事件选择的点的x坐标
     private float selectYPoint = -1;//点击事件选择的点的y坐标
     private int selectIndex = -1;//点击事件选择的点是第几个点
     private LineData selectlineData = null;//点击事件选择的折线
-    private boolean isDrawSelectPoint = false;// 是否绘制触摸点
-    private boolean isMoveTouch = false;//点击事件是否涉及MOVE事件
     private float xLength = 0;//X轴长度
     private float cooDensity;//Y轴坐标密度
     private float hintHeight = 0;//提示文本高度
+    private boolean isDrawSelectPoint = false;// 是否绘制触摸点
+    private boolean isMoveTouch = false;//点击事件是否涉及MOVE事件
+    protected int eventFlag  = FLAG_EVENT_ANIMATION;
     protected OnChartClickListener onChartClickListener = null; //坐标点的监听事件
     protected List<String> xAxisList = new ArrayList<>();//x坐标轴数据的集合
     protected HashMap<Integer,LineData> mLinesMap = new HashMap<>();//存放线的数据的集合
-
-    private final int LINEHINT_RECT_HEIGHT = 20;
-    private final int LINEHINT_RECT_WIDTH = 25;
 
 
     public LinesChartView(Context context) {
@@ -186,7 +189,7 @@ public class LinesChartView extends View {
         if (changed){
             //确定xy原点位置
             setXYOri();
-            setXYPoint();
+            initCurrentAndPreYPoint();
         }
 
         super.onLayout(changed, left, top, right, bottom);
@@ -199,7 +202,6 @@ public class LinesChartView extends View {
         canvas.drawColor(backgroundColor);//背景颜色
 
         setXYPoint();
-
         //绘制Y轴
         drawY(canvas);
         //绘制折线注释
@@ -216,7 +218,9 @@ public class LinesChartView extends View {
         drawSelectPoint(canvas);
         //保存图层
         save(canvas,layerId);
+
     }
+
 
     /**
      * 绘制折线注释
@@ -289,7 +293,8 @@ public class LinesChartView extends View {
             //绘制填充区域
             drawFillRegion(canvas,lineData.getFillColor(),pointDataList);
             //绘制点线
-            drawPointAndLine(canvas,lineData);
+//            drawPointAndLine(canvas,lineData);
+            drawPointAndLineAnim(canvas,lineData);
         }
 
     }
@@ -346,6 +351,7 @@ public class LinesChartView extends View {
     private void setXYPoint() {
 
         Iterator it = mLinesMap.entrySet().iterator();
+
         while (it.hasNext()){
             Map.Entry entry = (Map.Entry) it.next();
             LineData lineData = (LineData) entry.getValue();
@@ -370,8 +376,8 @@ public class LinesChartView extends View {
                 }else {
                     pointDataList.get(i).setPointColor(Color.RED);
                 }
-
             }
+
         }
     }
 
@@ -446,13 +452,33 @@ public class LinesChartView extends View {
     }
 
     /**
+     * 设置动画的方法
+     * 初始化y的当前值
+     */
+    private void initCurrentAndPreYPoint() {
+        Iterator it = mLinesMap.entrySet().iterator();
+
+        while (it.hasNext()){
+            Map.Entry entry = (Map.Entry) it.next();
+            LineData lineData = (LineData) entry.getValue();
+            List<PointData> pointDataList = lineData.getPointDataList();
+
+            for (int i = 0; i< pointDataList.size(); i++){
+                pointDataList.get(i).setyCurrentPoint(yStartPoint-xTextPadding);
+                pointDataList.get(i).setyPointPre(height-xTextPadding);
+            }
+
+        }
+    }
+
+    /**
      * 绘制填充区域
      */
     private void drawFillRegion(Canvas canvas, int fillColor, List<PointData> pointDataList) {
         Path fillPath = new Path();
         fillPath.moveTo(pointDataList.get(0).getxPoint()-distance,yStartPoint- xTextPadding);
         for (PointData pointData : pointDataList){
-            fillPath.lineTo(pointData.getxPoint()-distance, pointData.getyPoint());
+            fillPath.lineTo(pointData.getxPoint()-distance, pointData.getyCurrentPoint());
         }
         float lastX = pointDataList.get(pointDataList.size()-1).getxPoint();
         fillPath.lineTo(lastX,yStartPoint - xTextPadding);
@@ -482,6 +508,8 @@ public class LinesChartView extends View {
             linePaint.setPathEffect(new DashPathEffect(new float[]{0f,0f}, 0));
         }
 
+
+
         linePaint.setStyle(Paint.Style.STROKE);
         linePaint.setColor(lineData.getLineColor());
         linePaint.setStrokeJoin(Paint.Join.ROUND);
@@ -507,7 +535,70 @@ public class LinesChartView extends View {
             }
             canvas.drawCircle(pointData.getxPoint()-distance, pointData.getyPoint(),radiusMin,linePaint);
         }
+    }
 
+
+    /**
+     *绘制坐标点和折线(带动画)
+     */
+    private void drawPointAndLineAnim(Canvas canvas, LineData lineData) {
+
+        List<PointData> pointDataList = lineData.getPointDataList();
+
+        if (pointDataList.size()<=0){
+            return ;
+        }
+
+        //画折线
+        if (lineData.getLineType()==LineData.LINETYPE_DOTTEDLINE){
+            linePaint.setPathEffect(new DashPathEffect(new float[]{20f,10f}, 0));
+        }else {
+            linePaint.setPathEffect(new DashPathEffect(new float[]{0f,0f}, 0));
+        }
+
+
+
+        boolean isAllAnimEnd = true;
+        linePaint.setStyle(Paint.Style.STROKE);
+        linePaint.setColor(lineData.getLineColor());
+        linePaint.setStrokeJoin(Paint.Join.ROUND);
+        linePath = new Path();
+        linePath.moveTo(pointDataList.get(0).getxPoint()-distance, pointDataList.get(0).getyPoint());
+        for (PointData pointData : pointDataList){
+
+            float y =pointData.getyCurrentPoint();
+            linePath.lineTo(pointData.getxPoint()-distance, y);
+            if (y > pointData.getyPoint() && pointData.getyPoint()-pointData.getyPointPre()<0 ){
+                pointData.setyCurrentPoint(y-cooDensity);
+                isAllAnimEnd = false;
+            }else if (y<pointData.getyPoint() && pointData.getyPoint()-pointData.getyPointPre()>0){
+                pointData.setyCurrentPoint(y+cooDensity);
+                isAllAnimEnd = false;
+            } else {
+                pointData.setyCurrentPoint(pointData.getyPoint());
+            }
+        }
+
+        if (!isAllAnimEnd){
+            invalidate();
+        }
+        canvas.drawPath(linePath,linePaint);
+
+        //画点
+        float radiusMax = dp2px(3);
+        float radiusMin = dp2px(2);
+        for (PointData pointData : pointDataList){
+            linePaint.setStyle(Paint.Style.FILL);
+            linePaint.setColor(pointData.getPointColor());
+            canvas.drawCircle(pointData.getxPoint()-distance,  pointData.getyCurrentPoint(),radiusMax,linePaint);
+
+            if (backgroundColor == Color.TRANSPARENT){
+                linePaint.setColor(Color.WHITE);
+            }else {
+                linePaint.setColor(backgroundColor);
+            }
+            canvas.drawCircle(pointData.getxPoint()-distance,  pointData.getyCurrentPoint(),radiusMin,linePaint);
+        }
     }
 
     /**
@@ -553,6 +644,8 @@ public class LinesChartView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
+        eventFlag = FLAG_EVENT_TOUCH;
 
         switch (event.getAction()){
             case MotionEvent.ACTION_DOWN:

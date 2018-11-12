@@ -83,8 +83,44 @@ public class LinesChart extends LinesChartView  {
         }
         if (linesTarget == 0){
             xAxisList = lineData.getxAxisList();
+        }else {
+            List<PointData> pointDataList = lineData.getPointDataList();
+            for (PointData pointData:pointDataList){
+                pointData.setyCurrentPoint(height-xTextPadding);
+                pointData.setyPointPre(height-xTextPadding);
+            }
         }
         mLinesMap.put(linesTarget++,lineData);
+        postInvalidate();
+    }
+
+    /**
+     * 更改折线数据
+     * @param target
+     */
+    public void changeLine(int target,LineData lineData) throws Exception {
+        if (!mLinesMap.containsKey(target)){
+            throw new Exception("Target does not exist");
+        }
+        if (lineData.equals(mLinesMap.get(target))){
+            return;
+        }
+        List<PointData> oldPointList = mLinesMap.get(target).getPointDataList();
+        List<PointData> newPointList = lineData.getPointDataList();
+
+        int i = 0;
+        for ( ;i<oldPointList.size();i++){
+            newPointList.get(i).setyCurrentPoint(oldPointList.get(i).getyPoint());
+            newPointList.get(i).setyPointPre(oldPointList.get(i).getyPoint());
+        }
+
+        while (i<newPointList.size()){
+            newPointList.get(i++).setyCurrentPoint(height-xTextPadding);
+            newPointList.get(i++).setyPointPre(height-xTextPadding);
+        }
+        lineData.setPointDataList(newPointList);
+
+        mLinesMap.put(target,lineData);
         postInvalidate();
     }
 
