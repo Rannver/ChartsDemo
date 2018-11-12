@@ -826,7 +826,7 @@ public class LinesChartView extends View {
 
         //设置xy轴原点位置
         xStartPoint = (int) ( yTextPadding + xyLineWidth );
-        yStartPoint = height - dp2px((int) (xTextPadding + xyLineWidth + hintHeight));
+        yStartPoint = height - dp2px((int) (xyLineWidth + hintHeight));
     }
 
     /**
