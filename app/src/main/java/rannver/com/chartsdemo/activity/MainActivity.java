@@ -11,6 +11,7 @@ import rannver.com.chartsdemo.R;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Button btuLineChart;
+    private Button btuPieChart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,7 +19,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         btuLineChart = findViewById(R.id.btu_line);
+        btuPieChart = findViewById(R.id.btu_piechart);
         btuLineChart.setOnClickListener(this);
+        btuPieChart.setOnClickListener(this);
 
     }
 
@@ -30,6 +33,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()){
             case R.id.btu_line:
                 activity = LineActivity.class;
+                break;
+            case R.id.btu_piechart:
+                activity = PieActivity.class;
                 break;
 
         }

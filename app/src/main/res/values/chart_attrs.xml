@@ -2,8 +2,6 @@
 <resources>
 
     <declare-styleable name="LinesChartView">
-
-
         <!--x,y轴颜色-->
         <attr name="xylinecolor" format="color"/>
         <!--x,y轴粗细-->
@@ -30,7 +28,24 @@
         <attr name="thresholdlineshow" format="boolean"/>
         <!--是否显示折线注释-->
         <attr name="islinehintshow" format="boolean"/>
-        
+    </declare-styleable>
+
+    <declare-styleable name="PieChartView">
+        <!--饼图形式-->
+        <attr name="pietype" format="integer" >
+            <enum name="solid" value="0"/>
+            <enum name="hollow" value="1"/>
+        </attr>
+        <!--饼图标题-->
+        <attr name="title" format="string"/>
+        <!--标题位置-->
+        <attr name="titleIndex" format="integer">
+            <enum name="LeftAndTop" value="0"/>
+            <enum name="RightAndTop" value="1"/>
+            <enum name="LeftAndBottom" value="2"/>
+            <enum name="RightAndBottom" value="3"/>
+            <enum name="Center" value="4"/>
+        </attr>
     </declare-styleable>
 
 </resources>

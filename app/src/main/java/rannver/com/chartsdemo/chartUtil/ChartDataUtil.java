@@ -44,4 +44,22 @@ public class ChartDataUtil {
         return lineData;
     }
 
+    public static List<PieData> getPieDataList(){
+        List<PieData> list = new ArrayList<>();
+        for (int i = 0;i<5;i++){
+            PieData pieData = new PieData();
+            pieData.setPercent((i+1)/10f);
+            pieData.setTitle((i+1)+"月");
+            list.add(pieData);
+        }
+
+        list.get(0).setColor(Color.BLACK);
+        list.get(1).setColor(Color.RED);
+        list.get(2).setColor(Color.BLUE);
+        list.get(3).setColor(Color.GREEN);
+        list.get(4).setColor(Color.GRAY);
+
+        return list;
+    }
+
 }
