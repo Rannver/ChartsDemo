@@ -25,6 +25,8 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
     private final String TAG = this.getClass().toString();
     private LinesChart lineChart;
     private Button btuAdd;
+    private Button btuRemove;
+    private int removeTarget = -1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -33,6 +35,8 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
         lineChart = findViewById(R.id.linechart);
         lineChart.setScrollable(true);
         btuAdd = findViewById(R.id.btu_add);
+        btuRemove = findViewById(R.id.btu_remove);
+        btuRemove.setOnClickListener(this);
         btuAdd.setOnClickListener(this);
         Log.d(TAG, "onCreate: "+lineChart);
         Log.d(TAG, "onCreate: "+ChartDataUtil.getLineChartData());
@@ -63,12 +67,38 @@ public class LineActivity extends AppCompatActivity implements OnChartClickListe
     @Override
     public void onClick(View v) {
 
+        switch (v.getId()){
+            case R.id.btu_add:
+                addLine();
+                break;
+            case R.id.btu_remove:
+                removeLine();
+                break;
+        }
+    }
+
+    /**
+     * 移除折线
+     */
+    private void removeLine() {
+        try {
+            lineChart.removeLineData(removeTarget);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 添加折线
+     */
+    private void addLine() {
         try {
             LineData lineData = ChartDataUtil.getLineData();
             lineData.setLineColor(Color.GREEN);
             lineData.setFillColor(Color.BLUE);
             lineData.setTitle("数据3");
             lineChart.addLinesMap(lineData);
+            removeTarget = lineChart.getLineTarget(lineData);
         } catch (Exception e) {
             e.printStackTrace();
         }

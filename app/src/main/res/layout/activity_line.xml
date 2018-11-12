@@ -25,4 +25,10 @@
         android:id="@+id/btu_add"
         android:text="ADD LINE"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="REMOVE LINE"
+        android:id="@+id/btu_remove"/>
+
 </LinearLayout>

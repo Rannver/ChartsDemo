@@ -81,7 +81,7 @@ public class LinesChartView extends View {
     private float hintHeight = 0;//提示文本高度
     protected OnChartClickListener onChartClickListener = null; //坐标点的监听事件
     protected List<String> xAxisList = new ArrayList<>();//x坐标轴数据的集合
-    protected HashMap<LineData,Integer> mLinesMap = new HashMap<>();//存放线的数据的集合
+    protected HashMap<Integer,LineData> mLinesMap = new HashMap<>();//存放线的数据的集合
 
     private final int LINEHINT_RECT_HEIGHT = 20;
     private final int LINEHINT_RECT_WIDTH = 25;
@@ -232,7 +232,7 @@ public class LinesChartView extends View {
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()){
             Map.Entry entry = (Map.Entry) it.next();
-            LineData lineData = (LineData) entry.getKey();
+            LineData lineData = (LineData) entry.getValue();
 
             //画填充颜色
             RectF rectF = new RectF(startX,height - dp2px(LINEHINT_RECT_HEIGHT) + dp2px(5),startX+dp2px(LINEHINT_RECT_WIDTH),height - dp2px(5));
@@ -284,7 +284,7 @@ public class LinesChartView extends View {
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry entry = (Map.Entry) it.next();
-            LineData lineData = (LineData) entry.getKey();
+            LineData lineData = (LineData) entry.getValue();
             List<PointData> pointDataList = lineData.getPointDataList();
             //绘制填充区域
             drawFillRegion(canvas,lineData.getFillColor(),pointDataList);
@@ -348,7 +348,7 @@ public class LinesChartView extends View {
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()){
             Map.Entry entry = (Map.Entry) it.next();
-            LineData lineData = (LineData) entry.getKey();
+            LineData lineData = (LineData) entry.getValue();
             List<PointData> pointDataList = lineData.getPointDataList();
 
             float yEnd = yStartPoint-xTextPadding; //y轴终点（以屏幕坐标轴为参考系）
@@ -516,7 +516,6 @@ public class LinesChartView extends View {
      */
     private void drawX(Canvas canvas) {
 
-        Log.d(TAG, "drawX: "+xAxisList.size());
         xLength = dp2px((int) (xAxisList.size()*xScaleLength+12));//x轴的长度12dp预留x轴画箭头
         float xEnd = xStartPoint+yTextPadding+xLength; //x轴的终点(以屏幕坐标轴为参考系)
         float yEnd = yStartPoint-xTextPadding; //y轴终点（以屏幕坐标轴为参考系）
@@ -617,7 +616,7 @@ public class LinesChartView extends View {
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()){
             Map.Entry entry = (Map.Entry) it.next();
-            LineData lineData = (LineData) entry.getKey();
+            LineData lineData = (LineData) entry.getValue();
             List<PointData> pointDataList = lineData.getPointDataList();
             for (int i = 0; i< pointDataList.size(); i++){
                 float x = pointDataList.get(i).getxPoint() - distance;
@@ -654,7 +653,7 @@ public class LinesChartView extends View {
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry entry = (Map.Entry) it.next();
-            LineData lineData = (LineData) entry.getKey();
+            LineData lineData = (LineData) entry.getValue();
             List<PointData> pointDataList = lineData.getPointDataList();
             for (PointData pointData : pointDataList){
                 if((!YMap.containsKey(pointData.getY())) && isYScale(YMap, pointData.getY())){
@@ -691,7 +690,7 @@ public class LinesChartView extends View {
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry entry = (Map.Entry) it.next();
-            LineData lineData = (LineData) entry.getKey();
+            LineData lineData = (LineData) entry.getValue();
             List<PointData> pointDataList = lineData.getPointDataList();
             max = pointDataList.get(0).getY();
             for (PointData data: pointDataList){
@@ -710,7 +709,7 @@ public class LinesChartView extends View {
         Iterator it = mLinesMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry entry = (Map.Entry) it.next();
-            LineData lineData = (LineData) entry.getKey();
+            LineData lineData = (LineData) entry.getValue();
             List<PointData> pointDataList = lineData.getPointDataList();
             //设置y轴文字的最大距离
             for (int i = 0; i< pointDataList.size(); i++){

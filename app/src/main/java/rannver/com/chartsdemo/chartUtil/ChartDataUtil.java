@@ -1,5 +1,7 @@
 package rannver.com.chartsdemo.chartUtil;
 
+import android.graphics.Color;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -29,12 +31,15 @@ public class ChartDataUtil {
     public static LineData getLineData(){
         LineData lineData = new LineData();
         lineData.setPointDataList(getLineChartData());
+        int count = 0;
 
         List<String> list = new ArrayList<>();
         for (int i = 0;i<10;i++){
             list.add((i+1)+"月");
         }
-
+        lineData.setLineColor(Color.GREEN);
+        lineData.setFillColor(Color.BLUE);
+        lineData.setTitle("数据"+(count++));
         lineData.setxAxisList(list);
         return lineData;
     }

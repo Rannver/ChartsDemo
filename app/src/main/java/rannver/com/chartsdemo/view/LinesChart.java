@@ -5,6 +5,8 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,36 +42,13 @@ public class LinesChart extends LinesChartView  {
 
     /**
      * 移除折线数据
-     * @param lineData
-     */
-    public void removeLineData(LineData lineData) throws Exception {
-
-        if (!mLinesMap.containsKey(lineData)){
-            throw new Exception("The Line is not included in the LinesChart");
-        }
-
-        mLinesMap.remove(lineData);
-        postInvalidate();
-    }
-
-    /**
-     * 移除折线数据
      * @param target 对应折线的target值
      */
     public void removeLineData(int target) throws Exception {
-
-        if (!mLinesMap.containsValue(target)){
+        if (!mLinesMap.containsKey(target)){
             throw new Exception("The Line is not included in the LinesChart");
         }
-
-        Iterator it = mLinesMap.entrySet().iterator();
-        while (it.hasNext()){
-            Map.Entry entry = (Map.Entry) it.next();
-            if (entry.getValue().equals(target)){
-                mLinesMap.remove(entry.getValue());
-                return;
-            }
-        }
+        mLinesMap.remove(target);
         postInvalidate();
     }
 
@@ -80,10 +59,13 @@ public class LinesChart extends LinesChartView  {
      */
     public int getLineTarget(LineData lineData) throws Exception {
 
-        if (mLinesMap.containsKey(lineData)){
-            return mLinesMap.get(lineData);
+        Iterator it = mLinesMap.entrySet().iterator();
+        while (it.hasNext()){
+            HashMap.Entry entry = (HashMap.Entry) it.next();
+            if (entry.getValue().equals(lineData)){
+                return (int) entry.getKey();
+            }
         }
-
         throw new Exception("The Line is not included in the LinesChart");
     }
 
@@ -96,14 +78,13 @@ public class LinesChart extends LinesChartView  {
         if (mLinesMap.containsKey(lineData)){
             return;
         }
-        Log.d("LinesChart", "addLinesMap: ");
         if (xAxisList.size()>0 &&!xAxisList.equals(lineData.getxAxisList())){
             throw new Exception("line and view have different XAxis");
         }
         if (linesTarget == 0){
             xAxisList = lineData.getxAxisList();
         }
-        mLinesMap.put(lineData,linesTarget++);
+        mLinesMap.put(linesTarget++,lineData);
         postInvalidate();
     }
 
