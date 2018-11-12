@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btu_line:
                 activity = LineActivity.class;
                 break;
+
         }
 
         Intent intent = new Intent(MainActivity.this,activity);

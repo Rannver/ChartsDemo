@@ -13,4 +13,11 @@
         android:text="Line Charts"
         android:id="@+id/btu_line"/>
 
+    <Button
+        android:id="@+id/btu_piechart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pie Charts"
+        app:layout_constraintTop_toBottomOf="@+id/btu_line" />
+
 </android.support.constraint.ConstraintLayout>
