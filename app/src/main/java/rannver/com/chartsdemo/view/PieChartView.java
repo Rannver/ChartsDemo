@@ -3,12 +3,15 @@ package rannver.com.chartsdemo.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -25,14 +28,22 @@ public class PieChartView extends View {
 
     private final String TAG = this.getClass().toString();
 
+    private final int PIETYPE_SOLID = 0;
+    private final int PIETYPE_HOLLOW = 1;
+    private final int TITLEINDEX_TOP = 0;
+    private final int TITLEINDEX_BOTTM = 1;
+    private final int TITLEINDEX_CENTER = 2;
+
+
     //属性集
-    private int pieType;
-    private int titleIndex;
-    private String title;
+    protected int pieType;
+    protected int titleIndex;
+    protected String title;
 
     //画笔
     private Paint piePaint;//饼画笔
     private Paint textPaint;//文字画笔
+    private Paint linePaint;//分隔线画笔
 
     //数据
     private Context context;
@@ -40,8 +51,9 @@ public class PieChartView extends View {
     private float width;//布局宽
     private float centerX;//圆心x坐标
     private float centerY;//圆心y坐标
-    private float startAngel;//起始角度
+    private float radius;//半径
     protected List<PieData> pieList = new ArrayList<>();//饼图数据
+    protected float startAngel = 1;//起始角度
     protected float totalPercent;//总百分比
 
     public PieChartView(Context context) {
@@ -66,6 +78,7 @@ public class PieChartView extends View {
 
         piePaint = new Paint();
         textPaint = new Paint();
+        linePaint = new Paint();
 
         //饼画笔初始化
         piePaint.setAntiAlias(true);
@@ -74,6 +87,11 @@ public class PieChartView extends View {
         //文字画笔初始化
         textPaint.setAntiAlias(true);
         textPaint.setStyle(Paint.Style.STROKE);
+
+        //分隔线画笔初始化
+        linePaint.setAntiAlias(true);
+        linePaint.setStyle(Paint.Style.STROKE);
+        linePaint.setStrokeWidth(5f);
 
     }
 
@@ -97,6 +115,7 @@ public class PieChartView extends View {
         height = getHeight();
         centerX = width / 2;
         centerY = height / 2;
+        radius = centerX - dp2px(15);
     }
 
     @Override
@@ -106,23 +125,90 @@ public class PieChartView extends View {
         height = h;
         centerX = w/2;
         centerY = h/2;
+        radius = centerX - dp2px(15);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        //计算角度
+        getAngle();
         //画饼
         drawPie(canvas);
-        //画线
-        drawLine(canvas);
+        //画内圆
+        drawInnerCircle(canvas);
+        //画文字
+        drawText(canvas);
+        //画标题
+        setTitle(canvas);
     }
 
     /**
-     * 画线
+     * 画标题
      * @param canvas
      */
-    private void drawLine(Canvas canvas) {
+    private void setTitle(Canvas canvas) {
+        textPaint.setTextSize(64);
+        textPaint.setColor(Color.BLACK);
+        switch (titleIndex){
+            case TITLEINDEX_TOP:
+                canvas.drawText(title,centerX - getTextBounds(title,textPaint).width()/2,centerY - radius - (centerY - radius)/2,textPaint);
+                break;
+            case TITLEINDEX_BOTTM:
+                canvas.drawText(title,centerX - getTextBounds(title,textPaint).width()/2,centerY + radius + (centerY - radius)/2,textPaint);
+                break;
+            case TITLEINDEX_CENTER:
+                canvas.drawText(title,centerX - getTextBounds(title,textPaint).width()/2,centerY + getTextBounds(title,textPaint).height(),textPaint);
+                break;
+            default:
+                break;
+        }
+    }
 
+    /**
+     * 计算真实角度
+     */
+    private void getAngle() {
+        totalPercent = getTotal();
+        int tempAngel = 0;
+        for (PieData pieData:pieList){
+            float angel = (pieData.getPercent()/totalPercent)*360f;
+            //真实角度
+            pieData.setRealPercent(angel);
+            //起始角度和结束角度
+            pieData.setStartAngel(tempAngel+1);
+            pieData.setEndAngel(tempAngel+angel-1);
+            //对应的文字的xy轴
+            float textAngel = ( pieData.getEndAngel() + pieData.getStartAngel() ) / 2;
+            pieData.setTextXPoint((float) (centerX + radius * 3/4 * Math.cos(Math.toRadians(textAngel))));
+            pieData.setTextYPoint((float) (centerY + radius * 3/4 * Math.sin(Math.toRadians(textAngel))));
+            tempAngel += angel;
+        }
+    }
+
+    /**
+     * 画文字
+     * @param canvas
+     */
+    private void drawText(Canvas canvas) {
+        textPaint.setTextSize(36);
+        textPaint.setColor(Color.WHITE);
+        for (PieData pieData:pieList){
+            canvas.drawText(pieData.getTitle(),pieData.getTextXPoint(),pieData.getTextYPoint(),textPaint);
+            canvas.drawText((int)(pieData.getPercent()*100)+"%",pieData.getTextXPoint(),pieData.getTextYPoint()+getTextBounds(pieData.getTitle(),textPaint).height()+dp2px(2),textPaint);
+        }
+    }
+
+    /**
+     * 画内圆
+     * @param canvas
+     */
+    private void drawInnerCircle(Canvas canvas) {
+        if (pieType == PIETYPE_SOLID){
+            return;
+        }
+        piePaint.setColor(Color.WHITE);
+        canvas.drawCircle(centerX,centerY,radius/2,piePaint);
     }
 
     /**
@@ -130,15 +216,32 @@ public class PieChartView extends View {
      * @param canvas
      */
     private void drawPie(Canvas canvas) {
-        totalPercent = getTotal();
-        float radius = centerX - dp2px(15);
         RectF rectF = new RectF(centerX - radius,centerY - radius,centerX + radius,centerY +radius);
-        for (PieData pieData:pieList){
-            piePaint.setColor(pieData.getColor());
-            canvas.drawArc(rectF,startAngel,(pieData.getPercent()/totalPercent)*360f,true,piePaint);
-            startAngel += (pieData.getPercent()/totalPercent)*360f;
+        if (startAngel<=360f){
+            //动画效果
+            for (PieData pieData:pieList){
+                if (startAngel>pieData.getEndAngel()){
+                    piePaint.setColor(pieData.getColor());
+                    canvas.drawArc(rectF,pieData.getStartAngel(),pieData.getRealPercent()-1,true,piePaint);
+                } else if (pieData.getStartAngel()<=startAngel && startAngel <= pieData.getEndAngel()) {
+                    piePaint.setColor(pieData.getColor());
+                    canvas.drawArc(rectF,pieData.getStartAngel(),startAngel-pieData.getStartAngel(),true,piePaint);
+                }
+            }
+            startAngel += 3;
+            invalidate();
+        }else {
+            //显示全体
+            for (PieData pieData:pieList){
+                piePaint.setColor(pieData.getColor());
+                canvas.drawArc(rectF,pieData.getStartAngel(),pieData.getRealPercent()-1,true,piePaint);
+            }
         }
-        startAngel = 0;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return true;
     }
 
     /**
@@ -153,10 +256,21 @@ public class PieChartView extends View {
         return total;
     }
 
+    /**
+     * 获取文字长宽
+     * @param str 要获取的文字
+     * @param paint 画笔
+     * @return 保存宽高的矩阵
+     */
+    private Rect getTextBounds(String str, Paint paint) {
+        Rect rect = new Rect();
+        paint.getTextBounds(str,0,str.length(),rect);
+        return rect;
+    }
+
 
     private int dp2px(int dp) {
         return (int) (TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
                 context.getResources().getDisplayMetrics()) + 0.5);
     }
-
 }

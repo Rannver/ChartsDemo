@@ -9,6 +9,9 @@
     <rannver.com.chartsdemo.view.PieChart
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/piechart"/>
+        android:id="@+id/piechart"
+        app:pietype="HOLLOW"
+        app:title="@string/app_name"
+        app:titleIndex="CENTER"/>
 
 </LinearLayout>

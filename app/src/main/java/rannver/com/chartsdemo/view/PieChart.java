@@ -36,12 +36,24 @@ public class PieChart extends PieChartView {
         invalidate();
     }
 
-    public float getTotalPercent() {
-        return totalPercent;
+    public int getTitleIndex() {
+        return titleIndex;
     }
 
-    public void setTotalPercent(float totalPercent) {
-        this.totalPercent = totalPercent;
+    public void setTitleIndex(int titleIndex) {
+        this.titleIndex = titleIndex;
+        invalidate();
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+        invalidate();
+    }
+
+
 
 }

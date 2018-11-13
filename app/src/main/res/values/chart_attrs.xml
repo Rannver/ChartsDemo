@@ -33,18 +33,16 @@
     <declare-styleable name="PieChartView">
         <!--饼图形式-->
         <attr name="pietype" format="integer" >
-            <enum name="solid" value="0"/>
-            <enum name="hollow" value="1"/>
+            <enum name="SOILD" value="0"/>
+            <enum name="HOLLOW" value="1"/>
         </attr>
         <!--饼图标题-->
         <attr name="title" format="string"/>
         <!--标题位置-->
         <attr name="titleIndex" format="integer">
-            <enum name="LeftAndTop" value="0"/>
-            <enum name="RightAndTop" value="1"/>
-            <enum name="LeftAndBottom" value="2"/>
-            <enum name="RightAndBottom" value="3"/>
-            <enum name="Center" value="4"/>
+            <enum name="TOP" value="0"/>
+            <enum name="BOTTOM" value="1"/>
+            <enum name="CENTER" value="2"/>
         </attr>
     </declare-styleable>
 
