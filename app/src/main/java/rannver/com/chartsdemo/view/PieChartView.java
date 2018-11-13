@@ -52,6 +52,11 @@ public class PieChartView extends View {
     private float centerX;//圆心x坐标
     private float centerY;//圆心y坐标
     private float radius;//半径
+    private float innerRadius = 0;//内圆半径
+    private float touchX;//手指触摸屏幕的x坐标
+    private float touchY;//手指触碰屏幕的y坐标
+    private int selectIndex = -1;//触摸事件的选择区域
+    private boolean isMoveEvent = false;//是否触发了MOVE事件
     protected List<PieData> pieList = new ArrayList<>();//饼图数据
     protected float startAngel = 1;//起始角度
     protected float totalPercent;//总百分比
@@ -105,6 +110,10 @@ public class PieChartView extends View {
         pieType = typedArray.getInteger(R.styleable.PieChartView_pietype,0);//饼图类型，0为实心，1为空心
         titleIndex = typedArray.getInteger(R.styleable.PieChartView_titleIndex,-1);//标题显示位置
         title = typedArray.getString(R.styleable.PieChartView_title);//标题
+
+        if (!title.equals("") && titleIndex==-1){
+            titleIndex = TITLEINDEX_TOP;
+        }
     }
 
     @Override
@@ -135,12 +144,28 @@ public class PieChartView extends View {
         getAngle();
         //画饼
         drawPie(canvas);
+        //绘制点击区域
+        setSelectSpace(canvas);
         //画内圆
         drawInnerCircle(canvas);
         //画文字
         drawText(canvas);
         //画标题
         setTitle(canvas);
+    }
+
+    /**
+     * 绘制点击区域
+     * @param canvas
+     */
+    private void setSelectSpace(Canvas canvas) {
+        if (selectIndex == -1){
+            return;
+        }
+        float tempR = radius + dp2px(5);
+        RectF rectF = new RectF(centerX - tempR,centerY - tempR,centerX + tempR,centerY + tempR);
+        piePaint.setColor(pieList.get(selectIndex).getColor());
+        canvas.drawArc(rectF,pieList.get(selectIndex).getStartAngel(),pieList.get(selectIndex).getRealPercent()-1,true,piePaint);
     }
 
     /**
@@ -207,8 +232,9 @@ public class PieChartView extends View {
         if (pieType == PIETYPE_SOLID){
             return;
         }
+        innerRadius = radius/2;
         piePaint.setColor(Color.WHITE);
-        canvas.drawCircle(centerX,centerY,radius/2,piePaint);
+        canvas.drawCircle(centerX,centerY,innerRadius,piePaint);
     }
 
     /**
@@ -241,7 +267,51 @@ public class PieChartView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
+        switch (event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                touchX = event.getX() - centerX;
+                touchY = event.getY() - centerY;
+                break;
+            case MotionEvent.ACTION_UP:
+                selectTouchIndex();
+                isMoveEvent = false;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                isMoveEvent = true;
+                break;
+            default:
+                break;
+        }
+
         return true;
+    }
+
+    /**
+     * touch事件的选择区域
+     */
+    private void selectTouchIndex() {
+        if (isMoveEvent){
+            return;
+        }
+
+        //是否在点击范围内
+        float touchR = (float) Math.sqrt(touchX * touchX + touchY * touchY );
+        if (innerRadius > touchR || touchR > radius){
+            return;
+        }
+
+        //计算夹角
+        float touchAngel;
+        touchAngel = (float) Math.toDegrees(Math.atan2(touchY,touchX));
+        touchAngel = touchAngel<0 ? touchAngel+360 : touchAngel;
+//        Log.d(TAG, "selectTouchIndex: touchAngel = " + touchAngel );
+        for (int i = 0;i<pieList.size();i++){
+            if (pieList.get(i).getStartAngel()<=touchAngel && touchAngel<=pieList.get(i).getEndAngel()){
+                selectIndex = i;
+            }
+        }
+        invalidate();
     }
 
     /**
