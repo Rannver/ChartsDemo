@@ -55,6 +55,7 @@ public class PieChartView extends View {
     private float innerRadius = 0;//内圆半径
     private float touchX;//手指触摸屏幕的x坐标
     private float touchY;//手指触碰屏幕的y坐标
+    private float angelOffset;//滑动偏移角度量
     private int selectIndex = -1;//触摸事件的选择区域
     private boolean isMoveEvent = false;//是否触发了MOVE事件
     protected List<PieData> pieList = new ArrayList<>();//饼图数据
@@ -140,6 +141,7 @@ public class PieChartView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
         //计算角度
         getAngle();
         //画饼
@@ -195,20 +197,25 @@ public class PieChartView extends View {
      */
     private void getAngle() {
         totalPercent = getTotal();
-        int tempAngel = 0;
+        float tempAngel = angelOffset;
+
         for (PieData pieData:pieList){
             float angel = (pieData.getPercent()/totalPercent)*360f;
             //真实角度
             pieData.setRealPercent(angel);
             //起始角度和结束角度
-            pieData.setStartAngel(tempAngel+1);
-            pieData.setEndAngel(tempAngel+angel-1);
+            if (tempAngel<0){
+                tempAngel += 360;
+            }
+            pieData.setStartAngel(tempAngel + 1);
+            pieData.setEndAngel(tempAngel + angel - 1 );
             //对应的文字的xy轴
             float textAngel = ( pieData.getEndAngel() + pieData.getStartAngel() ) / 2;
             pieData.setTextXPoint((float) (centerX + radius * 3/4 * Math.cos(Math.toRadians(textAngel))));
             pieData.setTextYPoint((float) (centerY + radius * 3/4 * Math.sin(Math.toRadians(textAngel))));
             tempAngel += angel;
         }
+
     }
 
     /**
@@ -251,7 +258,7 @@ public class PieChartView extends View {
                     canvas.drawArc(rectF,pieData.getStartAngel(),pieData.getRealPercent()-1,true,piePaint);
                 } else if (pieData.getStartAngel()<=startAngel && startAngel <= pieData.getEndAngel()) {
                     piePaint.setColor(pieData.getColor());
-                    canvas.drawArc(rectF,pieData.getStartAngel(),startAngel-pieData.getStartAngel(),true,piePaint);
+                    canvas.drawArc(rectF,pieData.getStartAngel() ,startAngel-pieData.getStartAngel(),true,piePaint);
                 }
             }
             startAngel += 3;
@@ -259,6 +266,7 @@ public class PieChartView extends View {
         }else {
             //显示全体
             for (PieData pieData:pieList){
+                System.out.println("");
                 piePaint.setColor(pieData.getColor());
                 canvas.drawArc(rectF,pieData.getStartAngel(),pieData.getRealPercent()-1,true,piePaint);
             }
@@ -279,12 +287,25 @@ public class PieChartView extends View {
                 break;
             case MotionEvent.ACTION_MOVE:
                 isMoveEvent = true;
+                moveEventScroll(event);
                 break;
             default:
                 break;
         }
 
         return true;
+    }
+
+    /**
+     * move事件的旋转处理
+     * @param event
+     */
+    private void moveEventScroll(MotionEvent event) {
+        float touchAngel = (float) Math.toDegrees(Math.atan2(touchY,touchX));
+        touchX = event.getX() - centerX;
+        touchY = event.getY() - centerY;
+        angelOffset += (float) Math.toDegrees(Math.atan2(event.getY() - centerY,event.getX()-centerX)) - touchAngel;
+        invalidate();
     }
 
     /**
@@ -301,16 +322,18 @@ public class PieChartView extends View {
             return;
         }
 
+
         //计算夹角
-        float touchAngel;
-        touchAngel = (float) Math.toDegrees(Math.atan2(touchY,touchX));
+        float touchAngel = (float) Math.toDegrees(Math.atan2(touchY,touchX));
         touchAngel = touchAngel<0 ? touchAngel+360 : touchAngel;
-//        Log.d(TAG, "selectTouchIndex: touchAngel = " + touchAngel );
         for (int i = 0;i<pieList.size();i++){
             if (pieList.get(i).getStartAngel()<=touchAngel && touchAngel<=pieList.get(i).getEndAngel()){
                 selectIndex = i;
+                invalidate();
+                return;
             }
         }
+        selectIndex = -1;
         invalidate();
     }
 
