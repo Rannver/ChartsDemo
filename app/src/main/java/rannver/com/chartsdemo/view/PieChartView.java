@@ -119,7 +119,6 @@ public class PieChartView extends View {
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        Log.d(TAG, "onLayout: ");
         super.onLayout(changed, left, top, right, bottom);
         width = getWidth();
         height = getHeight();
@@ -143,7 +142,7 @@ public class PieChartView extends View {
         super.onDraw(canvas);
 
         //计算角度
-        getAngle();
+        setAngle();
         //画饼
         drawPie(canvas);
         //绘制点击区域
@@ -195,7 +194,7 @@ public class PieChartView extends View {
     /**
      * 计算真实角度
      */
-    private void getAngle() {
+    private void setAngle() {
         totalPercent = getTotal();
         float tempAngel = angelOffset;
 
@@ -204,13 +203,20 @@ public class PieChartView extends View {
             //真实角度
             pieData.setRealPercent(angel);
             //起始角度和结束角度
-            if (tempAngel<0){
-                tempAngel += 360;
-            }
-            pieData.setStartAngel(tempAngel + 1);
-            pieData.setEndAngel(tempAngel + angel - 1 );
+            float startAngel = tempAngel < 0 ? tempAngel+360f :tempAngel;
+            float endAngel = tempAngel + angel -1 < 0 ? tempAngel + angel - 1 + 360f : tempAngel + angel - 1;
+            startAngel = startAngel > 360 ? startAngel % 360 : startAngel;
+            endAngel = endAngel > 360 ? endAngel % 360 : endAngel;
+            pieData.setStartAngel(startAngel);
+            pieData.setEndAngel(endAngel);
+
             //对应的文字的xy轴
-            float textAngel = ( pieData.getEndAngel() + pieData.getStartAngel() ) / 2;
+            float textAngel;
+            if (pieData.getEndAngel() > pieData.getStartAngel()){
+                textAngel = ( pieData.getEndAngel() + pieData.getStartAngel() ) / 2;
+            }else {
+                textAngel = ( pieData.getEndAngel() + 360f + pieData.getStartAngel() ) / 2;
+            }
             pieData.setTextXPoint((float) (centerX + radius * 3/4 * Math.cos(Math.toRadians(textAngel))));
             pieData.setTextYPoint((float) (centerY + radius * 3/4 * Math.sin(Math.toRadians(textAngel))));
             tempAngel += angel;
@@ -327,7 +333,18 @@ public class PieChartView extends View {
         float touchAngel = (float) Math.toDegrees(Math.atan2(touchY,touchX));
         touchAngel = touchAngel<0 ? touchAngel+360 : touchAngel;
         for (int i = 0;i<pieList.size();i++){
-            if (pieList.get(i).getStartAngel()<=touchAngel && touchAngel<=pieList.get(i).getEndAngel()){
+            Log.d(TAG, "selectTouchIndex: i= " + i );
+            Log.d(TAG, "selectTouchIndex: angelOffset = "+angelOffset);
+            Log.d(TAG, "selectTouchIndex: StartAngel = "+pieList.get(i).getStartAngel());
+            Log.d(TAG, "selectTouchIndex: touchAngel = "+touchAngel);
+            Log.d(TAG, "selectTouchIndex: EndAngel = "+pieList.get(i).getEndAngel());
+            float startAngel = pieList.get(i).getStartAngel();
+            float endAngel = pieList.get(i).getEndAngel();
+            //普通情况下的点击判断
+            boolean isCommandFlag = ( startAngel <endAngel ) && ( startAngel  <= touchAngel  && touchAngel  <= endAngel );
+            //越界情况下的点击判断
+            boolean isCrossingFlag = ( startAngel > endAngel ) && ((startAngel <= touchAngel && touchAngel < 360f) || ( 0f <= touchAngel && touchAngel <= endAngel));
+            if (isCommandFlag || isCrossingFlag){
                 selectIndex = i;
                 invalidate();
                 return;
