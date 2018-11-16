@@ -7,6 +7,7 @@ import android.util.Log;
 
 import java.util.List;
 
+import rannver.com.chartsdemo.chartUtil.OnChartClickListener;
 import rannver.com.chartsdemo.chartUtil.PieData;
 
 /**
@@ -52,6 +53,14 @@ public class PieChart extends PieChartView {
     public void setTitle(String title) {
         this.title = title;
         invalidate();
+    }
+
+    public OnChartClickListener getOnChartClickListener() {
+        return onChartClickListener;
+    }
+
+    public void setOnChartClickListener(OnChartClickListener onChartClickListener) {
+        this.onChartClickListener = onChartClickListener;
     }
 
 

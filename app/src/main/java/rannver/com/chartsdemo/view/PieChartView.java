@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import rannver.com.chartsdemo.R;
+import rannver.com.chartsdemo.chartUtil.OnChartClickListener;
 import rannver.com.chartsdemo.chartUtil.PieData;
 
 /**
@@ -61,6 +62,7 @@ public class PieChartView extends View {
     protected List<PieData> pieList = new ArrayList<>();//饼图数据
     protected float startAngel = 1;//起始角度
     protected float totalPercent;//总百分比
+    protected OnChartClickListener onChartClickListener;
 
     public PieChartView(Context context) {
         this(context,null);
@@ -333,11 +335,11 @@ public class PieChartView extends View {
         float touchAngel = (float) Math.toDegrees(Math.atan2(touchY,touchX));
         touchAngel = touchAngel<0 ? touchAngel+360 : touchAngel;
         for (int i = 0;i<pieList.size();i++){
-            Log.d(TAG, "selectTouchIndex: i= " + i );
-            Log.d(TAG, "selectTouchIndex: angelOffset = "+angelOffset);
-            Log.d(TAG, "selectTouchIndex: StartAngel = "+pieList.get(i).getStartAngel());
-            Log.d(TAG, "selectTouchIndex: touchAngel = "+touchAngel);
-            Log.d(TAG, "selectTouchIndex: EndAngel = "+pieList.get(i).getEndAngel());
+//            Log.d(TAG, "selectTouchIndex: i= " + i );
+//            Log.d(TAG, "selectTouchIndex: angelOffset = "+angelOffset);
+//            Log.d(TAG, "selectTouchIndex: StartAngel = "+pieList.get(i).getStartAngel());
+//            Log.d(TAG, "selectTouchIndex: touchAngel = "+touchAngel);
+//            Log.d(TAG, "selectTouchIndex: EndAngel = "+pieList.get(i).getEndAngel());
             float startAngel = pieList.get(i).getStartAngel();
             float endAngel = pieList.get(i).getEndAngel();
             //普通情况下的点击判断
@@ -346,6 +348,11 @@ public class PieChartView extends View {
             boolean isCrossingFlag = ( startAngel > endAngel ) && ((startAngel <= touchAngel && touchAngel < 360f) || ( 0f <= touchAngel && touchAngel <= endAngel));
             if (isCommandFlag || isCrossingFlag){
                 selectIndex = i;
+
+                if (onChartClickListener!=null){
+                    onChartClickListener.onClick(pieList.get(selectIndex).getPercent(),selectIndex);
+                }
+
                 invalidate();
                 return;
             }
